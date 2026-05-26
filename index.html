@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>講解 CEINN</title>
+
+<!-- 思源宋體（Noto Serif TC = Source Han Serif） -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500;600;700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+
+<!-- KaTeX：在使用者瀏覽器端渲染數學式 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});"></script>
+
+<style>
+  :root{
+    --rose:#b68282;          /* 飽和度不高、偏深的粉紅 */
+    --rose-deep:#8f6161;     /* 更深，用於強調/hover */
+    --rose-soft:#cda0a0;
+    --pale:#fae9e9;          /* 亮亮的近白粉紅 */
+    --paper:#fdf6f5;         /* 頁面底 */
+    --card:#fffaf9;
+    --ink:#3c2e2e;           /* 主文字：暖深褐 */
+    --ink-soft:#6f5a5a;
+    --line:rgba(182,130,130,.26);
+    --line-soft:rgba(182,130,130,.14);
+    --shadow:0 18px 50px -28px rgba(120,70,70,.45);
+    --serif:"Noto Serif TC","Source Han Serif TC","思源宋體",serif;
+    --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    font-family:var(--serif);
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(182,130,130,.10), transparent 60%),
+      radial-gradient(900px 500px at -10% 20%, rgba(250,233,233,.7), transparent 55%),
+      var(--paper);
+    line-height:1.95;
+    -webkit-font-smoothing:antialiased;
+    letter-spacing:.01em;
+  }
+
+  /* ── 頂部細導覽 ───────────────────────────── */
+  nav{
+    position:sticky;top:0;z-index:50;
+    backdrop-filter:saturate(1.2) blur(8px);
+    background:rgba(253,246,245,.82);
+    border-bottom:1px solid var(--line);
+  }
+  nav .navwrap{
+    max-width:1040px;margin:0 auto;padding:.7rem 1.4rem;
+    display:flex;gap:.4rem 1.2rem;flex-wrap:wrap;align-items:center;
+    font-family:var(--sans);font-size:.82rem;
+  }
+  nav .brand{font-family:var(--serif);font-weight:700;color:var(--rose-deep);letter-spacing:.04em;margin-right:auto;}
+  nav a{color:var(--ink-soft);text-decoration:none;padding:.15rem .1rem;border-bottom:1.5px solid transparent;transition:.2s;}
+  nav a:hover{color:var(--rose-deep);border-color:var(--rose);}
+
+  .wrap{max-width:1040px;margin:0 auto;padding:0 1.4rem;}
+
+  /* ── Hero ─────────────────────────────────── */
+  header.hero{
+    padding:5rem 0 3rem;position:relative;overflow:hidden;
+  }
+  .kicker{
+    font-family:var(--sans);font-size:.78rem;letter-spacing:.42em;
+    text-transform:uppercase;color:var(--rose);font-weight:700;
+    margin-bottom:1.2rem;opacity:0;animation:rise .7s .05s forwards;
+  }
+  h1.title{
+    font-size:clamp(2.4rem,6vw,4.3rem);line-height:1.18;font-weight:900;
+    margin:0 0 .4rem;letter-spacing:.01em;color:var(--ink);
+    opacity:0;animation:rise .7s .12s forwards;
+  }
+  h1.title .en{display:block;font-size:clamp(1rem,2.4vw,1.5rem);font-weight:500;
+    color:var(--rose-deep);letter-spacing:.06em;margin-top:.7rem;font-style:italic;}
+  .lede{
+    font-size:clamp(1.05rem,2vw,1.32rem);color:var(--ink-soft);max-width:46rem;
+    margin:1.8rem 0 0;opacity:0;animation:rise .7s .2s forwards;
+  }
+  .pitch{
+    margin-top:2.2rem;padding:1.4rem 1.6rem;border-left:4px solid var(--rose);
+    background:linear-gradient(100deg, var(--pale), transparent);
+    border-radius:0 14px 14px 0;max-width:48rem;
+    opacity:0;animation:rise .7s .28s forwards;
+  }
+  .pitch b{color:var(--rose-deep);}
+
+  @keyframes rise{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:none;}}
+
+  /* ── 讀者分級篩選 ─────────────────────────── */
+  .levelbar{
+    display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;
+    margin:2.6rem 0 .4rem;font-family:var(--sans);
+    opacity:0;animation:rise .7s .36s forwards;
+  }
+  .levelbar .lbl{font-size:.82rem;color:var(--ink-soft);margin-right:.3rem;}
+  .chip{
+    font-family:var(--sans);font-size:.8rem;font-weight:500;cursor:pointer;
+    padding:.4rem .9rem;border-radius:999px;border:1.5px solid var(--line);
+    background:var(--card);color:var(--ink-soft);transition:.2s;user-select:none;
+  }
+  .chip:hover{border-color:var(--rose);color:var(--rose-deep);}
+  .chip.active{background:var(--rose);border-color:var(--rose);color:#fff;}
+  .hint{font-family:var(--sans);font-size:.76rem;color:var(--rose-deep);margin-top:.5rem;}
+
+  /* ── 區段標題 ─────────────────────────────── */
+  section.block{padding:3rem 0 1rem;}
+  .sec-head{display:flex;align-items:baseline;gap:1rem;margin-bottom:.4rem;border-bottom:2px solid var(--line);padding-bottom:.7rem;}
+  .sec-num{font-size:.9rem;font-family:var(--sans);font-weight:700;color:var(--rose);letter-spacing:.2em;}
+  .sec-head h2{font-size:clamp(1.5rem,3.4vw,2.1rem);margin:0;font-weight:700;letter-spacing:.02em;}
+  .sec-sub{color:var(--ink-soft);font-size:.98rem;margin:.6rem 0 1.4rem;}
+
+  /* ── 問答卡片 ─────────────────────────────── */
+  .qa{
+    background:var(--card);border:1px solid var(--line);border-radius:18px;
+    padding:1.8rem 1.9rem 1.6rem;margin:1.3rem 0;box-shadow:var(--shadow);
+    position:relative;transition:.45s;
+  }
+  .qa.dim{opacity:.28;filter:grayscale(.4);}
+  .qa .qrow{display:flex;gap:.9rem;align-items:flex-start;margin-bottom:.5rem;}
+  .qbadge{
+    flex:none;width:2.1rem;height:2.1rem;border-radius:50%;
+    display:grid;place-items:center;background:var(--rose);color:#fff;
+    font-family:var(--sans);font-weight:700;font-size:.92rem;margin-top:.15rem;
+    box-shadow:0 6px 16px -6px rgba(143,97,97,.7);
+  }
+  .qa h3{font-size:1.22rem;font-weight:700;margin:.1rem 0;line-height:1.5;color:var(--ink);}
+  .levels{display:flex;gap:.35rem;flex-wrap:wrap;margin:.2rem 0 .9rem 3rem;}
+  .lv{font-family:var(--sans);font-size:.68rem;font-weight:600;padding:.15rem .6rem;border-radius:999px;letter-spacing:.04em;}
+  .lv.basic{background:#eef7f0;color:#4a7c59;}
+  .lv.uni{background:var(--pale);color:var(--rose-deep);}
+  .lv.adv{background:#efe7f3;color:#772e58;}
+  .qa .ans{margin-left:.1rem;}
+  .qa p{margin:.7rem 0;}
+  .qa strong{color:var(--rose-deep);}
+
+  /* ── 觀念釐清側欄 ─────────────────────────── */
+  .clarify{
+    background:linear-gradient(180deg,var(--pale),#fff8f8);
+    border:1px solid var(--line);border-left:4px solid var(--rose);
+    border-radius:0 14px 14px 0;padding:1.1rem 1.3rem;margin:1.2rem 0;
+  }
+  .clarify .tag,.mathbox .tag,.takeaway .tag{
+    font-family:var(--sans);font-size:.72rem;font-weight:700;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--rose-deep);display:inline-block;margin-bottom:.4rem;
+  }
+  .clarify p{margin:.4rem 0;font-size:.97rem;}
+
+  /* ── 數學盒 ───────────────────────────────── */
+  .mathbox{
+    background:#fff;border:1px dashed var(--rose-soft);border-radius:14px;
+    padding:1rem 1.2rem;margin:1.1rem 0;overflow-x:auto;
+  }
+  .mathbox .note{font-family:var(--sans);font-size:.85rem;color:var(--ink-soft);margin-top:.6rem;line-height:1.8;}
+  .katex{font-size:1.05em;}
+
+  /* ── 一句話總結 ───────────────────────────── */
+  .takeaway{
+    background:var(--rose);color:#fff;border-radius:14px;padding:.9rem 1.2rem;margin:1.2rem 0 .2rem;
+  }
+  .takeaway .tag{color:#ffe7e7;}
+  .takeaway p{margin:.2rem 0;font-weight:500;}
+
+  /* ── 表格 ─────────────────────────────────── */
+  .tablewrap{overflow-x:auto;margin:1.2rem 0;border-radius:14px;border:1px solid var(--line);}
+  table{border-collapse:collapse;width:100%;font-family:var(--sans);font-size:.86rem;background:var(--card);}
+  th,td{padding:.6rem .7rem;text-align:center;border-bottom:1px solid var(--line-soft);white-space:nowrap;}
+  thead th{background:var(--rose);color:#fff;font-weight:600;letter-spacing:.03em;}
+  tbody tr:hover{background:var(--pale);}
+  td.metric,th.metric{text-align:left;font-family:var(--serif);font-weight:600;color:var(--ink);}
+  .col-ceinn{background:rgba(182,130,130,.13);font-weight:700;color:var(--rose-deep);}
+  thead .col-ceinn{background:var(--rose-deep);color:#fff;}
+  .win::after{content:"▲";color:#4a7c59;font-size:.7em;margin-left:.25em;}
+
+  /* ── 長條圖 ───────────────────────────────── */
+  .charts{display:grid;grid-template-columns:1fr 1fr;gap:1.6rem;margin:1.4rem 0;}
+  @media(max-width:720px){.charts{grid-template-columns:1fr;}}
+  .chart{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:1.3rem 1.2rem 1rem;box-shadow:var(--shadow);}
+  .chart h4{margin:.1rem 0 1rem;font-size:1rem;text-align:center;color:var(--ink);}
+  .bars{display:flex;align-items:flex-end;justify-content:center;gap:1.1rem;height:210px;border-bottom:2px solid var(--line);padding-bottom:.2rem;}
+  .barpair{display:flex;flex-direction:column;align-items:center;gap:.3rem;height:100%;justify-content:flex-end;}
+  .barset{display:flex;gap:.45rem;align-items:flex-end;height:100%;}
+  .bar{width:32px;border-radius:6px 6px 0 0;position:relative;transition:height 1.1s cubic-bezier(.2,.7,.3,1);}
+  .bar.val{background:linear-gradient(180deg,var(--rose-soft),#d7b0b0);}
+  .bar.test{background:linear-gradient(180deg,var(--rose-deep),var(--rose));}
+  .bar .v{position:absolute;top:-1.35rem;left:50%;transform:translateX(-50%);font-family:var(--sans);font-size:.66rem;color:var(--ink-soft);white-space:nowrap;}
+  .barlabel{font-family:var(--sans);font-size:.78rem;font-weight:600;color:var(--ink);}
+  .barlabel small{display:block;font-weight:400;color:var(--rose-deep);font-size:.72rem;}
+  .legend{display:flex;gap:1.2rem;justify-content:center;margin-top:.9rem;font-family:var(--sans);font-size:.76rem;color:var(--ink-soft);}
+  .legend span{display:inline-flex;align-items:center;gap:.35rem;}
+  .swatch{width:12px;height:12px;border-radius:3px;display:inline-block;}
+
+  /* ── 架構流程圖 ───────────────────────────── */
+  .flow{display:flex;flex-direction:column;align-items:center;gap:.5rem;margin:1.4rem 0;font-family:var(--sans);}
+  .flow .node{background:var(--card);border:1.5px solid var(--rose);border-radius:12px;padding:.7rem 1.2rem;text-align:center;font-size:.9rem;max-width:90%;}
+  .flow .node b{color:var(--rose-deep);font-family:var(--serif);}
+  .flow .arrow{color:var(--rose);font-size:1.3rem;line-height:1;}
+  .flow .split{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;}
+  .flow .split .node{flex:1;min-width:220px;}
+
+  footer{padding:3rem 0 4rem;color:var(--ink-soft);font-family:var(--sans);font-size:.82rem;border-top:1px solid var(--line);margin-top:3rem;}
+  footer b{color:var(--rose-deep);}
+
+  ::selection{background:var(--rose);color:#fff;}
+  .reveal{opacity:0;transform:translateY(22px);}
+  .reveal.in{opacity:1;transform:none;transition:.7s cubic-bezier(.2,.7,.3,1);}
+  .inline-note{font-family:var(--sans);font-size:.84rem;color:var(--ink-soft);}
+  code{font-family:"SFMono-Regular",Consolas,monospace;background:var(--pale);padding:.1em .4em;border-radius:5px;font-size:.85em;color:var(--rose-deep);}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="navwrap">
+    <span class="brand">機器學習觀念與應用 期末專題</span>
+    <a href="#s1">研究問題</a>
+    <a href="#s2">模型基礎</a>
+    <a href="#s3">因果去混淆</a>
+    <a href="#s4">經濟效用</a>
+    <a href="#s5">實驗結果</a>
+    <a href="#s6">指標算法</a>
+    <a href="#s7">進階提問</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker">黃旭寬、常興宥、黃育緯、張綺均、吳敘辰</div>
+    <h1 class="title">講解 CEINN
+      <span class="en">CEINN: Causal Economics-Informed Neural Networks for Sequential Recommendation</span>
+    </h1>
+    <p class="lede">這篇的撰寫原則是先給直覺、再提觀念、最後才寫數學語言，主要是給關於這份研究的理解以及準備海報展的報告。</p>
+
+    <div class="pitch">
+      <p style="margin:0"><b>一句話介紹：</b>CEINN 是一個序列推薦模型，它把<b>因果推論的「去偏」</b>和<b>經濟學的「選擇理論」</b>縫進一個 Transformer 裡，讓推薦分數不只是「相似度」，而是「修正過流行度偏差、且權衡了價值與成本的<i>效用</i>」。結果是：它在<b>真正的未來測試資料上，泛化能力勝過 SASRec</b>。</p>
+    </div>
+
+    <div class="levelbar">
+      <span class="lbl">依你的程度篩選問題：# 這區似乎動不了</span>
+      <span class="chip active" data-filter="all">全部</span>
+      <span class="chip" data-filter="basic">完全零基礎</span>
+      <span class="chip" data-filter="uni">資工大學程度</span>
+      <span class="chip" data-filter="adv">進階／教授</span>
+    </div>
+    <div class="hint">撰文：黃旭寬、Opus 4.7</div>
+  </div>
+</header>
+
+<!-- ════════════════ 第 1 區：研究問題 ════════════════ -->
+<section class="block" id="s1">
+<div class="wrap">
+  <div class="sec-head"><span class="sec-num">PART 01</span><h2>這份研究在解決什麼問題？</h2></div>
+  <p class="sec-sub">先講清楚「為什麼需要這個研究」，後面所有設計都是為了回答這個問題。</p>
+
+  <div class="qa" data-level="basic uni adv">
+    <div class="qrow"><div class="qbadge">Q</div><h3>CEINN 想解決的核心問題是什麼？</h3></div>
+    <div class="levels"><span class="lv basic">零基礎</span><span class="lv uni">大學</span></div>
+    <div class="ans">
+      <p>推薦系統的訓練資料有個根本陷阱：<strong>「使用者沒和某個商品互動」並不代表「他不喜歡」，很可能是這個商品根本沒被推薦給他、他壓根沒看到。</strong>這叫做<strong>曝光偏差（exposure bias）</strong>。</p>
+      <div class="clarify">
+        <span class="tag">觀念釐清 · 流行度偏差</span>
+        <p>熱門商品天生更常被曝光，所以在資料裡更常出現。模型如果照單全收，會學成「一直推薦熱門商品」的<b>捷徑</b>，而不是真正理解每個人的偏好。冷門但你會喜歡的東西，就永遠被埋沒——這對推薦的多樣性與長尾商品很傷。</p>
+      </div>
+      <p>我們可以用一條機率公式，把「觀測到的互動」拆成兩個獨立的原因：</p>
+      <div class="mathbox">
+        $$ \underbrace{P(Y_{ui}=1)}_{\text{我們在資料裡看到的互動}} \;=\; \underbrace{P(E_{ui}=1)}_{\text{有沒有「被曝光」}} \;\times\; \underbrace{P(Y_{ui}=1 \mid E_{ui}=1)}_{\text{曝光之後，喜不喜歡（真實偏好）}} $$
+        <div class="note">
+          $u$ 是使用者、$i$ 是商品。$Y_{ui}=1$ 代表「有正向互動」，$E_{ui}=1$ 代表「商品 $i$ 曾被曝光給 $u$」。<br>
+          這條式子在說：<b>我們看到的 ＝ 曝光機率 × 真實偏好</b>。問題是「流行度」同時推高了左邊和右邊第一項，所以它是一個<b>混淆變數（confounder）</b>——一個同時影響「原因」和「結果」的搗亂者。CEINN 的一大半工作就是把它的影響除掉。
+        </div>
+      </div>
+      <div class="takeaway"><span class="tag">一句話總結</span><p>CEINN 要把「使用者真正的偏好」從「商品恰好很紅所以常被看到」這個假象裡分離出來。</p></div>
+    </div>
+  </div>
+
+  <div class="qa" data-level="uni adv">
+    <div class="qrow"><div class="qbadge">Q</div><h3>那 CEINN 用什麼方法解決？兩條路線是什麼？</h3></div>
+    <div class="levels"><span class="lv uni">大學</span><span class="lv adv">進階</span></div>
+    <div class="ans">
+      <p>CEINN 這個名字就藏了兩條路線：</p>
+      <p><strong>① Causal（因果，第 3 區）</strong>──用兩招對付混淆變數：<code>IPS</code> 重新加權補償冷門商品，<code>GRL</code> 強迫模型「忘掉」流行度資訊。</p>
+      <p><strong>② Economics-Informed（受經濟學啟發，第 4 區）</strong>──把「使用者為何選這個」建模成經濟學的「效用最大化」：</p>
+      <div class="mathbox">
+        $$ U \;=\; \underbrace{V}_{\text{有多想要}} \;-\; \underbrace{\lambda_u \cdot C}_{\text{選它的阻力 × 個人在意程度}} $$
+        <div class="note">效用 ＝ 想要程度 減掉 成本。$V$ 是主觀價值、$C$ 是成本（價格或心理摩擦）、$\lambda_u$ 是這個使用者對成本的敏感度。</div>
+      </div>
+      <div class="flow">
+        <div class="node">使用者歷史 <b>(商品ID, 評分, 時間差)</b></div>
+        <div class="arrow">↓</div>
+        <div class="node" style="border-width:2px"><b>序列骨幹 Transformer</b>（第 2 區）→ 使用者狀態向量 $h_t$</div>
+        <div class="arrow">↓</div>
+        <div class="split">
+          <div class="node"><b>因果去混淆</b><br>估曝光機率 · 反轉梯度趕走流行度</div>
+          <div class="node"><b>經濟效用</b><br>$U = V - \lambda_u C$</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ════════════════ 第 2 區：模型基礎 ════════════════ -->
+<section class="block" id="s2">
+<div class="wrap">
+  <div class="sec-head"><span class="sec-num">PART 02</span><h2>模型基礎與資料處理</h2></div>
+  <p class="sec-sub">CEINN 不是憑空造的——它站在一個經典模型的肩膀上。</p>
+
+  <div class="qa" data-level="basic uni adv">
+    <div class="qrow"><div class="qbadge">Q</div><h3>CEINN 是基於什麼模型設計的？</h3></div>
+    <div class="levels"><span class="lv basic">零基礎</span><span class="lv uni">大學</span></div>
+    <div class="ans">
+      <p>CEINN 的「序列骨幹」其實<strong>就是 SASRec</strong>（一個 2018 年很有名的序列推薦模型）；而 SASRec 最根本的零件，就是<strong>Transformer</strong>（沒錯，和 ChatGPT 同一個家族的架構）。</p>
+      <p>所以可以這樣理解：</p>
+      <div class="mathbox" style="border-style:solid;border-color:var(--line);">
+        <div class="note" style="margin-top:0;font-size:.95rem;color:var(--ink);">
+          <b>CEINN ＝ SASRec 骨幹 ＋ ①因果去混淆模組 ＋ ②經濟效用模組</b><br>
+          換句話說，如果把 CEINN 的兩個新模組關掉，它幾乎就退化回 SASRec。這個設計很重要——它讓「CEINN 比 SASRec 好多少」這件事能被<b>乾淨地歸因</b>到那兩個新模組，而不是因為換了更大的網路。
+        </div>
+      </div>
+      <div class="clarify">
+        <span class="tag">觀念釐清 · Transformer 的因果遮罩</span>
+        <p>Transformer 靠「<b>注意力（attention）</b>」機制，算每個位置時會「看」序列裡其他位置、按相關性彙整資訊。但預測「下一個商品」時<b>絕對不能偷看未來</b>，否則就像考試看答案。解法是「<b>因果遮罩</b>」：算第 $i$ 個位置時，把第 $i$ 之後位置的注意力分數設成 $-\infty$，經過 softmax 後權重變 $0$（因為 $e^{-\infty}=0$），等於看不到未來。</p>
+      </div>
+      <p>對照組（baseline）也都是這個家族的代表：<code>SASRec</code>（單向 Transformer）、<code>BERT4Rec</code>（雙向 Transformer + 克漏字訓練）、<code>GRU4Rec</code>（RNN）、<code>BPR-MF</code>（矩陣分解）、<code>PopRec</code>（只推熱門，最陽春的底線）。</p>
+    </div>
+  </div>
+
+  <div class="qa" data-level="basic uni adv">
+    <div class="qrow"><div class="qbadge">Q</div><h3>資料是「隨機切」還是「按時間切」？為什麼？</h3></div>
+    <div class="levels"><span class="lv basic">零基礎</span><span class="lv uni">大學</span></div>
+    <div class="ans">
+      <p>是<strong>按時間切（時序留一分割，leave-one-out temporal）</strong>，不是隨機切。每個使用者把互動按時間排好後：</p>
+      <p>⇒ <strong>最後一筆</strong>（最未來）當<strong>測試集 test</strong>；<strong>倒數第二筆</strong>當<strong>驗證集 val</strong>；<strong>其餘較早的</strong>當<strong>訓練集 train</strong>。</p>
+      <div class="clarify">
+        <span class="tag">觀念釐清 · 為什麼不能隨機切？</span>
+        <p>推薦的本質是「<b>預測未來</b>」。如果隨機把使用者「中間」的某筆互動抽去當測試，等於讓模型「看過未來，再回頭預測過去」，這叫<b>資料洩漏（data leakage）</b>，會讓分數虛高、結論不可信。按時間切、永遠拿最後一筆當測試，才是模擬真實上線情境。</p>
+      </div>
+      <p class="inline-note">📌 記住這個「train → val → test 是越來越未來」的順序，第 5 區的關鍵結果就靠它。</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ════════════════ 第 3 區：因果去混淆 ════════════════ -->
+<section class="block" id="s3">
+<div class="wrap">
+  <div class="sec-head"><span class="sec-num">PART 03</span><h2>因果去混淆模組（IPS + GRL）</h2></div>
+  <p class="sec-sub">這是 CEINN 的「Causal」核心，也是它泛化能力的來源。</p>
+
+  <div class="qa" data-level="basic uni adv">
+    <div class="qrow"><div class="qbadge">Q</div><h3>IPS 和 GRL 分別在解決什麼問題？</h3></div>
+    <div class="levels"><span class="lv basic">零基礎</span><span class="lv uni">大學</span></div>
+    <div class="ans">
+      <p>它們是去除流行度偏差的「兩段式防護」，解決的問題不同：</p>
+      <p><strong>IPS（逆傾向加權）解決「資料層」的偏差</strong>：冷門商品很少被曝光，所以很少出現在正樣本裡。IPS 把它們的損失「<b>加重權重</b>」來補償，讓模型別只顧著熱門商品。</p>
+      <p><strong>GRL（梯度反轉）解決「表徵層」的殘留</strong>：就算用 IPS 重新加權了，使用者狀態向量 $h_t$ 裡可能<b>還偷偷藏著流行度資訊</b>。GRL 用一場「對抗遊戲」逼模型把這些資訊徹底抹掉。</p>
+      <div class="takeaway"><span class="tag">一句話總結</span><p>IPS 管「資料怎麼被加權」，GRL 管「學到的向量裡還殘留什麼」。一個治標、一個治本，互補。</p></div>
+    </div>
+  </div>
+
+  <div class="qa" data-level="uni adv">
+    <div class="qrow"><div class="qbadge">Q</div><h3>IPS 的數學原理是什麼？（含「為什麼會爆炸」）</h3></div>
+    <div class="levels"><span class="lv uni">大學</span><span class="lv adv">進階</span></div>
+    <div class="ans">
+      <div class="clarify">
+        <span class="tag">觀念釐清 · 用一個生活比喻理解</span>
+        <p>假設你想估全校平均身高，但你的抽樣方法偏心——籃球隊員被抽中的機率是別人的 10 倍。直接平均會高估。怎麼修正？<b>把每個樣本除以它「被抽中的機率」</b>：常被抽中的（籃球隊員）權重壓低，少被抽中的權重抬高。這就是「逆機率加權」。</p>
+      </div>
+      <p>套到推薦：冷門商品的曝光機率 $p_i$ 很低，所以一旦它真的出現，就給它高權重 $1/p_i$ 來補償。理論上這保證了<strong>無偏估計</strong>：</p>
+      <div class="mathbox">
+        $$ \mathbb{E}\!\left[\frac{E_{ui}}{p_i}\,\ell(u,i)\right] \;=\; \mathbb{E}\big[\ell(u,i)\big] $$
+        <div class="note">$\ell$ 是某筆互動的損失，$p_i$ 是曝光機率（由一個小神經網路估計）。左邊（我們只看得到曝光樣本、再加權）的期望，等於右邊（理想中沒有偏差時）的期望。</div>
+      </div>
+      <p>但 IPS 有個大麻煩：<strong>權重會爆炸</strong>。在 MovieLens 資料上，最冷門商品的 $1/p_i \approx 6973$！這一筆的權重是別人的近 7000 倍，會主宰整個訓練、讓梯度劇烈震盪。所以一定要「<strong>降低變異數</strong>」：</p>
+      <div class="mathbox">
+        $$ \text{截斷：}\; w_i=\min\!\Big(\tfrac{1}{p_i},\,\tau\Big) \qquad\qquad \text{自平滑：}\; w_i=\frac{1/p_i}{\sum_{j}1/p_j}\cdot N $$
+        <div class="note"><b>截斷（clipped）</b>：權重最多到 $\tau$（如 30 或 100），再大就砍平。<br><b>自平滑（SNIPS）</b>：不看絕對權重，只看「佔整批的比例」，稀釋單一極端值的破壞力。<br>MovieLens 因為極端值太誇張，<b>兩招一起上</b>（先截斷再自平滑）。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="qa" data-level="uni adv">
+    <div class="qrow"><div class="qbadge">Q</div><h3>GRL（梯度反轉層）到底怎麼運作？這招很妙</h3></div>
+    <div class="levels"><span class="lv uni">大學</span><span class="lv adv">進階</span></div>
+    <div class="ans">
+      <div class="clarify">
+        <span class="tag">觀念釐清 · 小偷 vs 保鏢</span>
+        <p>想像兩個人在玩對抗遊戲：<br>
+        <b>小偷（判別器 D）</b>：拿到使用者狀態 $h_t$，努力猜「這對應哪個流行度等級」。<br>
+        <b>保鏢（骨幹）</b>：努力讓 $h_t$ 裡<b>完全沒有</b>流行度線索，好讓小偷猜不出來。<br>
+        如果保鏢贏了（小偷只能瞎猜），就代表 $h_t$ 已經「不含流行度資訊」——這就是我們要的去混淆。</p>
+      </div>
+      <p>用數學寫，這是個 <strong>minimax（極小－極大）賽局</strong>。麻煩的是 minimax 通常要「兩步交替訓練」，很囉嗦。GRL 的天才之處是把它變成<strong>一次反向傳播就搞定</strong>：</p>
+      <div class="mathbox">
+        $$ \text{前向：}\;\; \mathrm{GRL}_\alpha(x)=x \qquad\qquad \text{反向：}\;\; \frac{\partial\,\mathrm{GRL}_\alpha(x)}{\partial x}=-\alpha\, I $$
+        <div class="note">
+          <b>前向傳播</b>：GRL 什麼都不做，輸入＝輸出（所以判別器照常拿到 $h_t$、照常學習猜流行度）。<br>
+          <b>反向傳播</b>：GRL 把流回 $h_t$ 的梯度<b>乘以 $-\alpha$（反號）</b>。<br>
+          梯度下降是「往讓損失變小的方向走」；反號後，骨幹收到的訊號就變成「往讓 $h_t$ <b>更難</b>被猜出流行度的方向走」。於是骨幹自動學會抹掉流行度——而且這一切在同一次反向傳播裡完成。這就是知名的 DANN 方法（Ganin & Lempitsky, 2015）。
+        </div>
+      </div>
+      <p>對抗的「火力」$\alpha$ 會隨訓練暖身：</p>
+      <div class="mathbox">
+        $$ \alpha(p)=\frac{2}{1+e^{-10p}}-1 $$
+        <div class="note">$p$ 是訓練進度（0→1）。初期 $\alpha\approx0$（先讓模型學會基本推薦），後期 $\alpha\to1$（對抗全開）。先暖身再加壓，避免一開始就對抗導致訓練崩潰。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="qa" data-level="adv">
+    <div class="qrow"><div class="qbadge">Q</div><h3>因果去混淆模組的「完整」設計長怎樣？</h3></div>
+    <div class="levels"><span class="lv adv">進階／教授</span></div>
+    <div class="ans">
+      <p>這個模組（<code>causal_deconfounder.py</code>）由三個零件組成，責任分明：</p>
+      <p>① <strong>傾向估計器（Propensity Estimator）</strong>：一個淺層 MLP，輸入只有商品的流行度桶 $Z_i$，輸出曝光機率 $p_i=\sigma(\mathrm{MLP}(E_Z(Z_i)))$。用「正樣本＝資料中出現過、負樣本＝隨機抽」的二元交叉熵預訓練。</p>
+      <p>② <strong>判別器（Discriminator）</strong>：兩層 MLP，$\mathbb{R}^d\to\mathbb{R}^K$，試圖從 $h_t$ 猜出 $K$ 個流行度桶。</p>
+      <p>③ <strong>GRL</strong>：夾在 $h_t$ 與判別器之間，製造對抗。</p>
+      <div class="clarify">
+        <span class="tag">觀念釐清 · 流行度桶 Z 從哪來？</span>
+        <p>$Z$ 是「流行度」的離散化（分成 $K=10$ 桶）。Amazon 用商品的 <b>salesRank</b>（市場排名）取對數後分桶；MovieLens 沒有排名，改用「<b>到目前為止這部片被互動的累積次數</b>」這個動態流行度當代理。這些都在資料前處理階段就算好凍結了。</p>
+      </div>
+      <p>整個模組的責任邊界很乾淨：它<strong>只產出機率/分數，不算損失</strong>（損失在 <code>losses.py</code>），也<strong>不負責決定流行度桶</strong>（那是前處理的事）。這種「各司其職」讓每個零件都能單獨測試。</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ════════════════ 第 4 區：經濟效用 ════════════════ -->
+<section class="block" id="s4">
+<div class="wrap">
+  <div class="sec-head"><span class="sec-num">PART 04</span><h2>經濟效用模組</h2></div>
+  <p class="sec-sub">這是「Economics-Informed」的核心——把經濟學的消費者選擇理論搬進推薦模型。</p>
+
+  <div class="qa" data-level="uni adv">
+    <div class="qrow"><div class="qbadge">Q</div><h3>經濟效用模組的具體設計是什麼？</h3></div>
+    <div class="levels"><span class="lv uni">大學</span><span class="lv adv">進階</span></div>
+    <div class="ans">
+      <div class="clarify">
+        <span class="tag">觀念釐清 · 經濟學怎麼看「選擇」</span>
+        <p>經濟學假設人會選「<b>效用最高</b>」的選項。效用 ＝ 可觀測的好處 ＋ 一個隨機誤差（心情、當天廣告…）。有個諾貝爾獎等級的結果（McFadden 1974）：如果那個隨機誤差服從一種叫 <b>Gumbel 分布</b> 的東西，那「選擇商品 $i$ 的機率」剛好會長成 <b>softmax</b> 的樣子。</p>
+      </div>
+      <p>這正是 CEINN 的關鍵洞見：<strong>推薦模型本來就用 softmax 打分，但 CEINN 說「這個 softmax 不只是數學技巧，它就是經濟學的離散選擇模型」</strong>，於是分數可以理直氣壯地設計成有經濟意義的效用：</p>
+      <div class="mathbox">
+        $$ P(\text{選 } i)=\frac{\exp(U_i)}{\sum_{j}\exp(U_j)},\qquad U=V-\lambda_u C $$
+      </div>
+      <p>三個零件：</p>
+      <p>① <strong>主觀價值 $V$</strong>（有多想要）：$V=h_t^\top W_V\,E_i(i)$，用使用者狀態與商品向量的「雙線性相似度」。$W_V$ 初始化成單位矩陣，讓它一開始等同最單純的內積（和 SASRec 一樣），之後才在資料需要時慢慢偏離。</p>
+      <p>② <strong>成本 $C$</strong>（選它的阻力）：見下一題，兩個資料集形式不同。</p>
+      <p>③ <strong>使用者敏感度 $\lambda_u$</strong>（多在意成本）：$\lambda_u=\sigma(w^\top z_u)$，其中 $z_u$ 是使用者歷史看過商品向量的平均。直覺：同樣 100 元，學生覺得貴、富翁無所謂——$\lambda_u$ 就是這個「在意程度」，介於 $(0,1)$。</p>
+    </div>
+  </div>
+
+  <div class="qa" data-level="basic uni adv">
+    <div class="qrow"><div class="qbadge">Q</div><h3>MovieLens-10M 沒有價格，怎麼做經濟模組的建模？</h3></div>
+    <div class="levels"><span class="lv basic">零基礎</span><span class="lv uni">大學</span></div>
+    <div class="ans">
+      <p>好問題！這正是 CEINN 設計上最巧妙的地方之一。Amazon 有真實價格，所以成本是「<strong>顯式經濟成本</strong>」；MovieLens 沒有價格、沒有市場排名，CEINN 就改用「<strong>隱式行為摩擦（behavioural friction）</strong>」——也就是「選這部片的心理／行為阻力」來當成本。</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th class="metric">場景</th><th>成本函數 $C(i,t)$ 的組成</th></tr></thead>
+          <tbody>
+            <tr><td class="metric">Amazon<br>（顯式經濟成本）</td><td style="text-align:left;white-space:normal">$\alpha_1\log(\text{價格}) + \alpha_2\,\phi(\text{類別}) + \alpha_3\,\psi(\text{品牌}) + \alpha_4\,\eta(\text{流行度}) + \alpha_5(\log\text{價格}\times\text{類別})$</td></tr>
+            <tr><td class="metric">MovieLens<br>（隱式行為摩擦）</td><td style="text-align:left;white-space:normal">$\beta_1\,\text{GenreRed} + \beta_2\,\text{RecencyPress} + \beta_3\,\text{PopPress}$</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>MovieLens 的三個摩擦訊號是：</p>
+      <p><strong>GenreRed（類型疲勞）</strong>：候選電影的類型，和你最近看過的類型重疊多少？用 <b>Jaccard 相似度</b> $J(A,B)=\frac{|A\cap B|}{|A\cup B|}$ 衡量（重疊比例，0～1）。直覺：連看五部動作片後，第六部又是動作片，可能膩了。</p>
+      <p><strong>RecencyPress（時近壓力）</strong>、<strong>PopPress（流行度壓力）</strong>：分別來自「在序列中的位置」與「候選片的動態流行度」。</p>
+      <div class="clarify">
+        <span class="tag">觀念釐清 · 一個誠實的科學態度</span>
+        <p>EDA（探索性分析）其實發現「類型疲勞假說」<b>站不住腳</b>：資料顯示類型越重複的人，評分反而<b>略高</b>（因為「主動選同類型的人本來就是該類型鐵粉」，這是一種選擇性偏差）。所以 CEINN 沒有硬把 GenreRed 當成「一定是成本」，而是把它的權重 $\beta_1$ 設成很小，然後<b>觀察訓練時 $\beta_1$ 會往哪走</b>。如果它跑到 0 或負值，那是「資料告訴我們飽和假說在這裡不成立」的<b>發現</b>，不是 bug。這種「讓資料說話」的態度，是研究嚴謹度的展現。</p>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ════════════════ 第 5 區：實驗結果 ════════════════ -->
+<section class="block" id="s5">
+<div class="wrap">
+  <div class="sec-head"><span class="sec-num">PART 05</span><h2>實驗結果</h2></div>
+  <p class="sec-sub">這一區最容易被追問。請務必記住下面這個「val 輸、test 贏」的故事。</p>
+
+  <div class="qa" data-level="basic uni adv">
+    <div class="qrow"><div class="qbadge">★</div><h3>CEINN 憑什麼贏 SASRec？它的「泛化能力」從哪來？</h3></div>
+    <div class="levels"><span class="lv basic">零基礎</span><span class="lv uni">大學</span><span class="lv adv">進階</span></div>
+    <div class="ans">
+      <p>這是整份研究最漂亮的結果。先看一個關鍵現象（以 NDCG@10 為例）：</p>
+
+      <div class="charts">
+        <div class="chart">
+          <h4>Amazon Beauty · NDCG@10</h4>
+          <div class="bars">
+            <div class="barpair">
+              <div class="barset">
+                <div class="bar val" style="height:176px"><span class="v">0.0704</span></div>
+                <div class="bar test" style="height:90px"><span class="v">0.0360</span></div>
+              </div>
+              <div class="barlabel">SASRec<small>跌 −49%</small></div>
+            </div>
+            <div class="barpair">
+              <div class="barset">
+                <div class="bar val" style="height:121px"><span class="v">0.0484</span></div>
+                <div class="bar test" style="height:91px"><span class="v">0.0365</span></div>
+              </div>
+              <div class="barlabel">CEINN<small>跌 −25%</small></div>
+            </div>
+          </div>
+        </div>
+        <div class="chart">
+          <h4>MovieLens 10M · NDCG@10</h4>
+          <div class="bars">
+            <div class="barpair">
+              <div class="barset">
+                <div class="bar val" style="height:185px"><span class="v">0.1925</span></div>
+                <div class="bar test" style="height:124px"><span class="v">0.1295</span></div>
+              </div>
+              <div class="barlabel">SASRec<small>跌 −33%</small></div>
+            </div>
+            <div class="barpair">
+              <div class="barset">
+                <div class="bar val" style="height:148px"><span class="v">0.1536</span></div>
+                <div class="bar test" style="height:137px"><span class="v">0.1425</span></div>
+              </div>
+              <div class="barlabel">CEINN<small>跌 −7%</small></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="legend">
+        <span><span class="swatch" style="background:#d7b0b0"></span>驗證集 val（較近的未來）</span>
+        <span><span class="swatch" style="background:var(--rose-deep)"></span>測試集 test（最遠的未來）</span>
+      </div>
+
+      <p style="margin-top:1.4rem"><strong>關鍵觀察：在驗證集上 SASRec 領先 CEINN，但在測試集上 CEINN 反超。</strong>原因藏在「val 到 test 的落差」：</p>
+      <p>⇒ SASRec 從 val 到 test <strong>暴跌 33%～49%</strong>；CEINN 只<strong>微跌 7%～25%</strong>。CEINN 穩多了。</p>
+
+      <div class="clarify">
+        <span class="tag">觀念釐清 · 為什麼會「val 輸 test 贏」？這就是泛化能力</span>
+        <p>回想第 2 區：<b>train → val → test 是越來越未來</b>。而流行度會隨時間漂移（MovieLens 尤其劇烈，熱門片排名波動率達 23.65%）。</p>
+        <p>SASRec 是個純粹的「模式比對器」，它牢牢抓住<b>訓練時期</b>的流行度分布。這個分布和 val（較近的未來）比較像，所以 SASRec 在 val 上靠「流行度捷徑」拿高分；但到了 test（最遠的未來），流行度已經漂移，捷徑失效，分數就暴跌。</p>
+        <p>CEINN 的因果去混淆（IPS + GRL）<b>故意不讓模型依賴流行度捷徑</b>。代價是它在 val 上稍微吃虧（放棄了能衝高 val 的捷徑）；回報是它學到的是「穩定、不會隨時間漂移的真實偏好訊號」，所以在 test 上屹立不搖、反超 SASRec。</p>
+      </div>
+
+      <div class="takeaway"><span class="tag">一句話總結（可以直接這樣回答觀眾）</span><p>SASRec 走了流行度捷徑，所以「考古題（val）」考很好、「真實未來（test）」卻摔一跤；CEINN 靠因果去混淆拒絕走捷徑，雖然考古題稍差，但真實未來更穩、贏過 SASRec。這就是泛化能力，也正是這個研究想證明的事。</p></div>
+
+      <p class="inline-note">＊效果在 MovieLens 最明顯——因為 MovieLens 的流行度漂移最嚴重（Gini 0.80），剛好命中 CEINN 的設計初衷。</p>
+    </div>
+  </div>
+
+  <div class="qa" data-level="uni adv">
+    <div class="qrow"><div class="qbadge">Q</div><h3>完整的測試集數字長怎樣？</h3></div>
+    <div class="levels"><span class="lv uni">大學</span><span class="lv adv">進階</span></div>
+    <div class="ans">
+      <p><strong>MovieLens 10M（測試集）── CEINN 七項指標全勝 </strong></p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th class="metric">指標</th><th>PopRec</th><th>BPR-MF</th><th>GRU4Rec</th><th>SASRec</th><th>BERT4Rec</th><th class="col-ceinn">CEINN</th></tr></thead>
+          <tbody>
+            <tr><td class="metric">NDCG@10</td><td>0.0249</td><td>0.0262</td><td>0.1191</td><td>0.1295</td><td>0.1003</td><td class="col-ceinn win">0.1425</td></tr>
+            <tr><td class="metric">HR@10</td><td>0.0472</td><td>0.0496</td><td>0.2143</td><td>0.2331</td><td>0.1837</td><td class="col-ceinn win">0.2468</td></tr>
+            <tr><td class="metric">MRR</td><td>0.0244</td><td>0.0261</td><td>0.1041</td><td>0.1122</td><td>0.0879</td><td class="col-ceinn win">0.1249</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin-top:1.2rem"><strong>Amazon Beauty（測試集）── CEINN 在「最前段」指標勝出</strong></p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th class="metric">指標</th><th>PopRec</th><th>BPR-MF</th><th>GRU4Rec</th><th>SASRec</th><th>BERT4Rec</th><th class="col-ceinn">CEINN</th></tr></thead>
+          <tbody>
+            <tr><td class="metric">NDCG@10</td><td>0.0055</td><td>0.0180</td><td>0.0271</td><td>0.0360</td><td>0.0202</td><td class="col-ceinn win">0.0365</td></tr>
+            <tr><td class="metric">HR@10</td><td>0.0115</td><td>0.0376</td><td>0.0498</td><td>0.0660</td><td>0.0389</td><td class="col-ceinn">0.0609</td></tr>
+            <tr><td class="metric">MRR</td><td>0.0057</td><td>0.0167</td><td>0.0249</td><td>0.0323</td><td>0.0190</td><td class="col-ceinn win">0.0338</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="inline-note">▲ ＝ 該指標 CEINN 勝過 SASRec。Amazon 上 CEINN 在 NDCG@5/10、HR@5、MRR（榜單最前段）勝出，SASRec 則在 @20 等「較寬的召回」保有優勢；MovieLens 則是全面領先。<strong>誠實提醒</strong>：Amazon 是互有勝負，不要過度宣稱「全贏」。</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ════════════════ 第 6 區：指標算法 ════════════════ -->
+<section class="block" id="s6">
+<div class="wrap">
+  <div class="sec-head"><span class="sec-num">PART 06</span><h2>評估指標怎麼算 & 為什麼數字那麼低</h2></div>
+  <p class="sec-sub">這兩題幾乎一定會被問，尤其是讀過 SASRec 論文的人。</p>
+
+  <div class="qa" data-level="basic uni adv">
+    <div class="qrow"><div class="qbadge">Q</div><h3>為什麼這些 metrics 看起來那麼低？（大概是 SASRec 論文數值的十分之一）</h3></div>
+    <div class="levels"><span class="lv basic">零基礎</span><span class="lv uni">大學</span></div>
+    <div class="ans">
+      <p>因為這裡用的是<strong>全排序評估（full ranking）</strong>——正確答案要跟<strong>全部約 1～1.2 萬個商品</strong>一起排名。</p>
+      <div class="clarify">
+        <span class="tag">觀念釐清 · 全排序 vs 抽樣評估</span>
+        <p>很多早期論文（包含 SASRec 原論文）用的是「<b>抽樣評估（sampled metric）</b>」：正確答案只跟「<b>隨機抽的 100 個</b>」負樣本一起排名。要擠進 101 個裡的前 10 名，當然比擠進 12000 個裡的前 10 名容易得多——所以那些論文的數字會高出大約 10 倍。</p>
+        <p>學界（Krichene & Rendle, KDD 2020）已指出：抽樣評估會<b>扭曲模型排名</b>，不可靠。全排序雖然數字難看，但才是誠實、嚴格的評估。</p>
+      </div>
+      <div class="takeaway"><span class="tag">關鍵</span><p>絕對數字不能跨論文比較！重點是<b>在同一個全排序協定下，所有模型公平對打</b>——本研究的所有 baseline 都用完全相同的評估程式（同樣遮掉訓練看過的商品、同樣全排序），所以「CEINN vs SASRec」的勝負是可信的。</p></div>
+    </div>
+  </div>
+
+  <div class="qa" data-level="basic uni adv">
+    <div class="qrow"><div class="qbadge">Q</div><h3>NDCG@10、HR@10、MRR 到底怎麼算？</h3></div>
+    <div class="levels"><span class="lv basic">零基礎</span><span class="lv uni">大學</span></div>
+    <div class="ans">
+      <p>三個指標都從同一件事出發：模型給全部商品打分後，<strong>正確答案被排到第幾名 $r$</strong>。</p>
+      <div class="mathbox">
+        $$ r = \big|\{\,j : s_j > s_{\text{正確答案}}\,\}\big| + 1 $$
+        <div class="note">數一數有幾個商品的分數「<b>嚴格大於</b>」正確答案，加 1 就是排名。$r=1$ 代表模型把正確答案排第一，完美。<br><span class="inline-note">（用「嚴格大於」而非「大於等於」是 SASRec／BERT4Rec 官方慣例，避免分數打平時系統性高估熱門商品。）</span></div>
+      </div>
+      <p>有了排名 $r$，三個指標的公式：</p>
+      <div class="mathbox">
+        $$ \text{HR@}K=\mathbb{1}[r\le K]\qquad \text{NDCG@}K=\begin{cases}\dfrac{1}{\log_2(r+1)} & r\le K\\[2mm] 0 & r>K\end{cases}\qquad \text{MRR}=\dfrac{1}{r} $$
+      </div>
+      <p><strong>白話解釋每個：</strong></p>
+      <p>• <strong>HR@K（命中率）</strong>：正確答案有沒有進前 $K$ 名？有就 1、沒有就 0。最直覺。</p>
+      <p>• <strong>NDCG@K</strong>：不只看有沒有進榜，還看「排多前面」。越前面分數越高（排第 1 名得滿分 1），掉出前 $K$ 名就 0 分。</p>
+      <p>• <strong>MRR（平均倒數排名）</strong>：直接取排名倒數。第 1 名得 1 分、第 2 名 0.5 分、第 10 名 0.1 分。</p>
+      <div class="clarify">
+        <span class="tag">觀念釐清 · 用具體數字算一次</span>
+        <p>假設正確答案被排在 <b>第 3 名</b>（$r=3$）：</p>
+        <p>• HR@10 ＝ 1（因為 $3\le10$）<br>
+           • NDCG@10 ＝ $1/\log_2(3+1)=1/\log_2 4 = 1/2 = \mathbf{0.5}$<br>
+           • MRR ＝ $1/3 \approx \mathbf{0.333}$</p>
+        <p>如果被排在 <b>第 15 名</b>（$r=15$）：HR@10 ＝ 0、NDCG@10 ＝ 0（掉出前 10）、MRR ＝ $1/15\approx0.067$。</p>
+        <p>最後把所有使用者各自算出來的值<b>取平均</b>，就是報表上的語料級分數。所以 NDCG@10 ＝ 0.14 的意思大致是：平均而言模型把正確答案排在相當前面、且常常進前 10 名（在一萬個商品裡，這其實不容易）。</p>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ════════════════ 第 7 區：進階提問 ════════════════ -->
+<section class="block" id="s7">
+<div class="wrap">
+  <div class="sec-head"><span class="sec-num">PART 07</span><h2>教授級可能追問的硬問題</h2></div>
+  <p class="sec-sub">如果有人想挑戰，這些是預備好的回答。</p>
+
+  <div class="qa" data-level="adv">
+    <div class="qrow"><div class="qbadge">Q</div><h3>「val 輸 test 贏」會不會只是運氣？怎麼確定不是 cherry-picking？</h3></div>
+    <div class="levels"><span class="lv adv">進階／教授</span></div>
+    <div class="ans">
+      <p>有三點可以回應：</p>
+      <p>① <strong>模型選擇對 SASRec 有利、卻仍輸</strong>：所有模型都用「val NDCG@10 最高」來早停（early stopping）選模型——這個機制其實<b>偏袒</b>在 val 上表現好的 SASRec。即使如此，SASRec 在 test 上仍輸給 CEINN，這讓泛化結論更強而非更弱。</p>
+      <p>② <strong>方向一致、跨資料集重現</strong>：兩個性質迥異的資料集（Amazon 稀疏、MovieLens 密集）都出現「SASRec val→test 大跌、CEINN 小跌」的同向現象，不像隨機雜訊。</p>
+      <p>③ <strong>機制可解釋</strong>：落差大小與資料集的流行度漂移程度一致（MovieLens 漂移最大→CEINN 優勢最大），符合因果去混淆的理論預期。</p>
+      <p class="inline-note">當然，最嚴謹的版本應報告多個隨機種子的平均與標準差（研究計畫中規劃了 5 個種子），這點可以坦白說明。</p>
+    </div>
+  </div>
+
+  <div class="qa" data-level="adv">
+    <div class="qrow"><div class="qbadge">Q</div><h3>比較公平嗎？CEINN 會不會只是參數比較多？</h3></div>
+    <div class="levels"><span class="lv adv">進階／教授</span></div>
+    <div class="ans">
+      <p>盡力做到公平，有幾個保證：</p>
+      <p>• <strong>同骨幹</strong>：CEINN 的序列骨幹就是 SASRec，維度 $d$、層數、頭數都對齊（Amazon $d=64$、MovieLens $d=128$）。差別只在那兩個新模組。</p>
+      <p>• <strong>同評估</strong>：所有 baseline 共用同一支 <code>validate_full_ranking</code> 與 <code>compute_full_ranking</code>，同樣遮掉訓練看過的商品、同樣全排序。評估邏輯一字不差。</p>
+      <p>• <strong>同訓練預算</strong>：相同的 Adam、學習率 $5\times10^{-4}$、早停 patience、最大 epoch 上限。</p>
+      <p>新模組確實帶來少量額外參數（判別器、傾向估計器、成本係數），但這些都很小（判別器是 2 層 MLP、成本只有 5 個純量係數），不足以解釋泛化差異——而且若只是「容量更大」，理應在 val 也贏，但實際上 CEINN 在 val 還輸。這反向支持「優勢來自去偏，而非容量」。</p>
+    </div>
+  </div>
+
+  <div class="qa" data-level="adv">
+    <div class="qrow"><div class="qbadge">Q</div><h3>這個研究有什麼已知的限制？</h3></div>
+    <div class="levels"><span class="lv adv">進階／教授</span></div>
+    <div class="ans">
+      <p>誠實標註幾個取捨（這反而展現研究嚴謹）：</p>
+      <p>① <strong>訓練/評估的候選池不一致</strong>：MovieLens 訓練時為了效率，每個位置只抽 100 個負樣本算 softmax；但評估時卻是全排序（全部商品）。這個落差是已知的近似，理想解法是訓練時加入「批次內困難負樣本」。</p>
+      <p>② <strong>動態流行度被迫退化成靜態</strong>：傾向估計器需要「每個商品一個固定的 $Z$」，但 MovieLens 的流行度是動態的，目前取「中位數」當代理，對動態語意是一種有損壓縮。</p>
+      <p>③ <strong>GenreRed 飽和假說未被資料支持</strong>：如第 4 區所述，這其實是一個待回報的實證發現。</p>
+      <p class="inline-note">能主動講出限制，通常比假裝沒有更能贏得評審/教授的信任。</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p><b>◢ CEINN ◤</b>　|　Causal Economics-Informed Neural Networks for Sequential Recommendation</p>
+    <p>數據來源：<code>CEINN_比較模型.csv</code>（validation / test set）；方法依據：研究方法文件與 <code>models/</code>、<code>utils/</code> 程式碼。</p>
+    <p style="margin-top:1rem;color:var(--rose)">CEINN 研究團隊 | 2026 機器學習觀念與應用</p>
+  </div>
+</footer>
+
+<script>
+  // 讀者分級篩選
+  const chips=document.querySelectorAll('.chip');
+  const cards=document.querySelectorAll('.qa');
+  chips.forEach(c=>c.addEventListener('click',()=>{
+    chips.forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    const f=c.dataset.filter;
+    cards.forEach(card=>{
+      const lv=card.dataset.level||'';
+      card.classList.toggle('dim', f!=='all' && !lv.includes(f));
+    });
+  }));
+
+  // 捲動進場動畫
+  const blocks=document.querySelectorAll('.qa, .chart, .tablewrap');
+  blocks.forEach(b=>b.classList.add('reveal'));
+  const io=new IntersectionObserver((es)=>{
+    es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+  },{threshold:.12});
+  blocks.forEach(b=>io.observe(b));
+
+  // 長條圖載入時從 0 長出來
+  window.addEventListener('load',()=>{
+    document.querySelectorAll('.bar').forEach(bar=>{
+      const h=bar.style.height; bar.style.height='0px';
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{bar.style.height=h;}));
+    });
+  });
+</script>
+</body>
+</html>
